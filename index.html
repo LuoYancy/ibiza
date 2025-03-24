@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Ibiza Travel Map</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+    body { margin:0; padding:0; }
+    #map {
+      height: 100vh;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <h2 style="text-align:center;">Ibiza Travel Plan</h2>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <script>
+    var map = L.map('map').setView([38.9089, 1.4324], 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // 地点数据
+    var locations = [
+      { 
+        name: "Ibiza Town", 
+        coords: [38.9089, 1.4324] 
+      },
+      { 
+        name: "Santa Eulalia", 
+        coords: [38.9840, 1.5341] 
+      },
+      { 
+        name: "Es Vedrà Viewpoint", 
+        coords: [38.8654, 1.2082] 
+      },
+      { 
+        name: "全包酒店 Palladium Hotel Palmyra", 
+        coords:[38.975004747397485, 1.3087461541182344],
+        link: "https://www.booking.com/hotel/es/palladium-hotel-palmyra.zh-cn.html?aid=311076&...完整链接"
+      },
+      { 
+        name: "机场", 
+        coords:[38.87670760369432, 1.3715552633296233] 
+      },
+      { 
+        name: "Hostal Marí 双人间+单人间 255p", 
+        coords:[38.982645450428414, 1.3038019964475587],
+        link: "https://www.booking.com/hotel/es/hostal-mari.zh-cn.html?aid=311076&...完整链接"
+      },
+      { 
+        name: "Le Mirage Ibiza 三张床 270p", 
+        coords: [38.98469772882051, 1.3050271676120553],
+        link: "https://www.booking.com/hotel/es/le-mirage-ibiza.zh-cn.html?aid=311076&...完整链接"
+      },
+      { 
+        name: "Hostal Alicante 三张床 191p", 
+        coords:[38.98658478688612, 1.3030689399397832],
+        link: "https://www.booking.com/hotel/es/hostal-alicante-san-antonio-de-portmany.zh-cn.html?aid=311076&...完整链接"
+      }
+    ];
+
+    var markerList = [];
+    var palladiumCoords = [38.975004747397485, 1.3087461541182344];
+
+    locations.forEach(function(loc) {
+      var popupContent = `<b>${loc.name}</b>`;
+      if (loc.link) {
+        popupContent += `<br><a href="${loc.link}" target="_blank">点击预订</a>`;
+      }
+      var marker = L.marker(loc.coords).addTo(map)
+        .bindPopup(popupContent);
+      markerList.push(marker);
+    });
+
+    // 添加机场到全包酒店路线
+    var airportToHotel = L.polyline([
+      [38.87670760369432, 1.3715552633296233],
+      palladiumCoords
+    ], {
+      color: 'blue',
+      weight: 4,
+      opacity: 0.8,
+      dashArray: '5,5'
+    }).addTo(map);
+    airportToHotel.bindPopup("<b>机场 → 酒店路线</b><br>公交约30分钟<br>打车约15分钟");
+
+    // ➤ 全包酒店到青旅路线
+    var hostelRoutes = [
+      {
+        name: "Hostal Marí",
+        coords: [38.982645450428414, 1.3038019964475587],
+        time: "步行约12分钟"
+      },
+      {
+        name: "Le Mirage Ibiza",
+        coords: [38.98469772882051, 1.3050271676120553],
+        time: "步行约13分钟"
+      },
+      {
+        name: "Hostal Alicante",
+        coords: [38.98658478688612, 1.3030689399397832],
+        time: "步行约15分钟"
+      }
+    ];
+
+    hostelRoutes.forEach(function(route) {
+      var line = L.polyline([
+        palladiumCoords,
+        route.coords
+      ], {
+        color: 'green',
+        weight: 3,
+        opacity: 0.9
+      }).addTo(map);
+      line.bindPopup(`<b>酒店 → ${route.name}</b><br>${route.time}`);
+    });
+
+    // 自动缩放
+    var group = new L.featureGroup([
+      ...markerList,
+      airportToHotel,
+      ...hostelRoutes.map(r => L.polyline([palladiumCoords, r.coords]))
+    ]);
+    map.fitBounds(group.getBounds());
+
+  </script>
+
+</body>
+</html>
